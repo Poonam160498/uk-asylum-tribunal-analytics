@@ -5,7 +5,8 @@ An independent, exploratory analysis of Ministry of Justice First-tier Tribunal 
 
 > 🔎 **Headline finding:** disposal-weighted allow rates vary from roughly **27% to 55% across hearing venues** — a spread of ~27 percentage points. That spread has **narrowed to ~12 points by 2025/26**, coinciding with the rollout of a new case-management system.
 
-<!-- Add a dashboard screenshot here: ![Dashboard](images/dashboard.png) -->
+<!-- Add a dashboard screenshot here: ![<img width="936" height="435" alt="Screenshot 2026-07-03 at 14 59 59" src="https://github.com/user-attachments/assets/50979f5d-83f3-4c9d-a07f-527ec2d7efd0" />
+) -->
 
 ## Why this project
 
@@ -19,7 +20,7 @@ I bring an unusual combination to it: a law background (LLM) for the legal conte
 - **Weighted allow rates** — rates weighted by appeals determined per venue, so small venues don't distort the picture
 - **Venue comparison** — spread, coefficient of variation (0.14), and which venues sit at the extremes
 - **Time trends** — how venue variation has changed from 2018/19 to 2025/26
-- **Interactive dashboard** — <!-- link your Tableau Public / Power BI dashboard here -->
+- **Interactive dashboard** — <!-- file:///Users/poonamnauroji/Downloads/appeal_dashboard-2.html -->
 
 ## Important caveats (read before quoting)
 
