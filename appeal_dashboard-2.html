@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asylum Appeal Prospects Explorer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1a2332;
+    background: #f4f6f9;
+    padding: 28px 16px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 30px 34px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .eyebrow { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #1F4E79; font-weight: 600; }
+  h1 { font-family: 'Newsreader', serif; font-size: 32px; font-weight: 500; margin: 6px 0 4px; line-height: 1.12; }
+  .sub { font-size: 14px; color: #5a6472; }
+  .head { border-bottom: 2px solid #1a2332; padding-bottom: 16px; margin-bottom: 22px; }
+  .controls { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl label { font-size: 12px; font-weight: 600; color: #5a6472; text-transform: uppercase; letter-spacing: .5px; }
+  select { font-family: 'Inter', sans-serif; font-size: 14px; padding: 9px 12px; border: 1px solid #c9cfd8; border-radius: 8px; background: #fff; color: #1a2332; cursor: pointer; min-width: 200px; }
+  select:focus { outline: 2px solid #1F4E79; outline-offset: 1px; }
+  .cards { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 26px; }
+  .card { border: 1px solid #c9cfd8; border-radius: 12px; padding: 18px 20px; background: #fff; }
+  .card.alt { background: #fafbfc; }
+  .card-label { font-size: 13px; color: #5a6472; margin-bottom: 4px; }
+  .big { font-family: 'Newsreader', serif; font-size: 52px; font-weight: 500; color: #1F4E79; line-height: 1; }
+  .delta { font-size: 14px; font-weight: 600; }
+  .up { color: #15803d; } .down { color: #b45309; }
+  .note { font-size: 13px; color: #5a6472; margin-top: 10px; }
+  .alt-line { font-size: 13px; line-height: 2; }
+  .section-label { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #5a6472; text-transform: uppercase; letter-spacing: .5px; }
+  .chart-box { height: 210px; margin-bottom: 28px; }
+  .row { display: grid; grid-template-columns: 180px 1fr 56px; gap: 12px; align-items: center; padding: 5px 0; cursor: pointer; }
+  .row:hover .fill { filter: brightness(.94); }
+  .vname { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track { background: #eef1f5; border-radius: 5px; height: 26px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 5px; transition: width .3s ease; }
+  .pct { font-size: 13px; font-weight: 600; text-align: right; }
+  .foot { font-size: 11.5px; color: #8a94a3; border-top: 1px solid #c9cfd8; padding-top: 12px; margin-top: 16px; line-height: 1.6; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid #c9cfd8; }
+  .hook { background: linear-gradient(135deg, #1F4E79 0%, #16385a 100%); border-radius: 14px; padding: 22px 26px; margin-bottom: 24px; color: #fff; }
+  .hook-text { font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; font-weight: 400; }
+  .hook-lo { font-weight: 600; color: #ff9d7a; }
+  .hook-hi { font-weight: 600; color: #7ee0b0; }
+  .hook-band { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+  .band-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d85a30 0%, #e0a020 50%, #1d9e75 100%); }
+  .band-label { font-size: 12px; font-weight: 600; color: #cdd8e6; white-space: nowrap; }
+  .tab { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; padding: 10px 18px; border: none; background: none; color: #5a6472; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab:hover { color: #1a2332; }
+  .tab.active { color: #1F4E79; border-bottom-color: #1F4E79; }
+  @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } .row { grid-template-columns: 130px 1fr 48px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="eyebrow">Proof of Concept · First-tier Tribunal</div>
+    <h1>Asylum Appeal Prospects Explorer</h1>
+    <div class="sub">Historical allow rates by hearing venue, 2018/19–2025/26 · Source: Ministry of Justice tribunal statistics</div>
+  </div>
+
+  <div class="hook">
+    <div class="hook-text">The same kind of asylum case can be allowed
+      <span class="hook-lo">22%</span> of the time — or
+      <span class="hook-hi">77%</span> — depending on nationality and which venue hears it.</div>
+    <div class="hook-band">
+      <span class="band-label">India 22%</span>
+      <div class="band-bar"></div>
+      <span class="band-label">Sudan 77%</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabVenue">By hearing venue</button>
+    <button class="tab" id="tabNat">By nationality</button>
+  </div>
+
+  <div id="venuePanel">
+  <div class="controls">
+    <div class="ctrl">
+      <label for="caseType">Case type</label>
+      <select id="caseType"></select>
+    </div>
+    <div class="ctrl">
+      <label for="venue">Hearing venue</label>
+      <select id="venue"></select>
+    </div>
+  </div>
+
+  <div id="cards" class="cards"></div>
+
+  <div id="trendWrap" style="display:none">
+    <div class="section-label" id="trendTitle"></div>
+    <div class="chart-box"><canvas id="trendChart" role="img" aria-label="Allow rate over time for the selected venue"></canvas></div>
+  </div>
+
+  <div class="section-label" id="rankTitle"></div>
+  <div id="ranking"></div>
+  </div>
+
+  <div id="natPanel" style="display:none">
+    <div id="natCards" class="cards"></div>
+    <div id="natTrendWrap" style="display:none">
+      <div class="section-label">Allow rate over time — top nationalities by volume</div>
+      <div class="chart-box" style="height:240px"><canvas id="natTrendChart" role="img" aria-label="Allow rate over time by nationality"></canvas></div>
+    </div>
+    <div class="section-label">Asylum allow rate by nationality — 2018 onwards</div>
+    <div id="natRanking"></div>
+  </div>
+
+  <div class="foot">
+    Proof of concept for dissertation. Shows historical base rates only — not a prediction of any individual case, and not a substitute for legal advice.
+    Rates are disposal-weighted; venues with fewer than 50 determined appeals are excluded.
+  </div>
+</div>
+
+<script id="data" type="application/json">{"records":[{"venue":"Belfast","caseType":"Asylum/Protection","allowRate":39.6,"determined":232},{"venue":"Belfast","caseType":"EEA Free Movement","allowRate":39.4,"determined":104},{"venue":"Belfast","caseType":"Human Rights","allowRate":35.2,"determined":105},{"venue":"Birmingham (Priory Courts)","caseType":"Asylum/Protection","allowRate":40.1,"determined":11536},{"venue":"Birmingham (Priory Courts)","caseType":"EEA Free Movement","allowRate":45.7,"determined":11141},{"venue":"Birmingham (Priory Courts)","caseType":"Human Rights","allowRate":49.4,"determined":13617},{"venue":"Bradford","caseType":"Asylum/Protection","allowRate":54.5,"determined":7044},{"venue":"Bradford","caseType":"EEA Free Movement","allowRate":41.7,"determined":2831},{"venue":"Bradford","caseType":"Human Rights","allowRate":54.1,"determined":3999},{"venue":"Glasgow","caseType":"Asylum/Protection","allowRate":40.9,"determined":4452},{"venue":"Glasgow","caseType":"EEA Free Movement","allowRate":35.0,"determined":1588},{"venue":"Glasgow","caseType":"Human Rights","allowRate":44.9,"determined":3166},{"venue":"Harmondsworth","caseType":"Asylum/Protection","allowRate":27.0,"determined":960},{"venue":"Harmondsworth","caseType":"EEA Free Movement","allowRate":48.8,"determined":556},{"venue":"Harmondsworth","caseType":"Human Rights","allowRate":50.4,"determined":1469},{"venue":"Hatton Cross","caseType":"Asylum/Protection","allowRate":47.1,"determined":12890},{"venue":"Hatton Cross","caseType":"EEA Free Movement","allowRate":48.3,"determined":12516},{"venue":"Hatton Cross","caseType":"Human Rights","allowRate":54.9,"determined":21378},{"venue":"Manchester Piccadilly","caseType":"Asylum/Protection","allowRate":43.7,"determined":13001},{"venue":"Manchester Piccadilly","caseType":"EEA Free Movement","allowRate":44.7,"determined":8321},{"venue":"Manchester Piccadilly","caseType":"Human Rights","allowRate":51.1,"determined":8541},{"venue":"Newport","caseType":"Asylum/Protection","allowRate":45.5,"determined":4985},{"venue":"Newport","caseType":"EEA Free Movement","allowRate":40.1,"determined":2224},{"venue":"Newport","caseType":"Human Rights","allowRate":52.5,"determined":4265},{"venue":"North Shields","caseType":"Asylum/Protection","allowRate":45.9,"determined":414},{"venue":"North Shields","caseType":"Human Rights","allowRate":47.6,"determined":258},{"venue":"Nottingham Justice Centre","caseType":"Asylum/Protection","allowRate":44.8,"determined":315},{"venue":"Nottingham Justice Centre","caseType":"EEA Free Movement","allowRate":47.1,"determined":1181},{"venue":"Nottingham Justice Centre","caseType":"Human Rights","allowRate":56.2,"determined":1605},{"venue":"Taylor House","caseType":"Asylum/Protection","allowRate":48.4,"determined":16728},{"venue":"Taylor House","caseType":"EEA Free Movement","allowRate":45.8,"determined":18591},{"venue":"Taylor House","caseType":"Human Rights","allowRate":56.1,"determined":27766},{"venue":"North Shields","caseType":"EEA Free Movement","allowRate":55.0,"determined":53},{"venue":"Newcastle IAC","caseType":"Asylum/Protection","allowRate":44.7,"determined":2832},{"venue":"Newcastle IAC","caseType":"EEA Free Movement","allowRate":42.3,"determined":513},{"venue":"Newcastle IAC","caseType":"Human Rights","allowRate":50.0,"determined":1028},{"venue":"National Business Centre","caseType":"EEA Free Movement","allowRate":48.1,"determined":79},{"venue":"IAC National (Virtual)","caseType":"Asylum/Protection","allowRate":45.9,"determined":440},{"venue":"IAC National (Virtual)","caseType":"Human Rights","allowRate":53.0,"determined":260},{"venue":"IAC National (Virtual)","caseType":"EEA Free Movement","allowRate":54.0,"determined":82}],"trend":{"Belfast|Asylum/Protection":[{"year":"2018/19","rate":40.0},{"year":"2019/20","rate":40.5},{"year":"2020/21","rate":39.0}],"Belfast|EEA Free Movement":[{"year":"2018/19","rate":39.6}],"Belfast|Human Rights":[{"year":"2018/19","rate":34.0}],"Birmingham (Priory Courts)|Asylum/Protection":[{"year":"2018/19","rate":35.3},{"year":"2019/20","rate":39.1},{"year":"2020/21","rate":42.3},{"year":"2021/22","rate":43.2},{"year":"2022/23","rate":44.7},{"year":"2023/24","rate":42.2},{"year":"2024/25","rate":44.5},{"year":"2025/26","rate":37.0}],"Birmingham (Priory Courts)|EEA Free Movement":[{"year":"2018/19","rate":53.0},{"year":"2019/20","rate":43.1},{"year":"2020/21","rate":42.4},{"year":"2021/22","rate":49.4},{"year":"2022/23","rate":49.0},{"year":"2023/24","rate":48.2},{"year":"2024/25","rate":40.1},{"year":"2025/26","rate":25.9}],"Birmingham (Priory Courts)|Human Rights":[{"year":"2018/19","rate":54.9},{"year":"2019/20","rate":45.8},{"year":"2020/21","rate":51.0},{"year":"2021/22","rate":50.3},{"year":"2022/23","rate":50.0},{"year":"2023/24","rate":47.6},{"year":"2024/25","rate":48.7},{"year":"2025/26","rate":42.1}],"Bradford|Asylum/Protection":[{"year":"2018/19","rate":57.3},{"year":"2019/20","rate":56.2},{"year":"2020/21","rate":59.6},{"year":"2021/22","rate":54.8},{"year":"2022/23","rate":58.0},{"year":"2023/24","rate":55.2},{"year":"2024/25","rate":54.0},{"year":"2025/26","rate":42.6}],"Bradford|EEA Free Movement":[{"year":"2018/19","rate":38.3},{"year":"2019/20","rate":47.1},{"year":"2020/21","rate":41.3},{"year":"2021/22","rate":48.3},{"year":"2022/23","rate":44.8},{"year":"2023/24","rate":37.8},{"year":"2024/25","rate":36.6},{"year":"2025/26","rate":26.7}],"Bradford|Human Rights":[{"year":"2018/19","rate":56.7},{"year":"2019/20","rate":55.5},{"year":"2020/21","rate":53.1},{"year":"2021/22","rate":62.3},{"year":"2022/23","rate":58.6},{"year":"2023/24","rate":50.6},{"year":"2024/25","rate":44.1},{"year":"2025/26","rate":41.8}],"Glasgow|Asylum/Protection":[{"year":"2018/19","rate":44.2},{"year":"2019/20","rate":46.4},{"year":"2020/21","rate":38.9},{"year":"2021/22","rate":42.6},{"year":"2022/23","rate":43.6},{"year":"2023/24","rate":40.8},{"year":"2024/25","rate":39.2},{"year":"2025/26","rate":34.1}],"Glasgow|EEA Free Movement":[{"year":"2018/19","rate":42.1},{"year":"2019/20","rate":43.2},{"year":"2020/21","rate":37.0},{"year":"2021/22","rate":33.3},{"year":"2022/23","rate":45.2},{"year":"2023/24","rate":29.5},{"year":"2024/25","rate":32.6},{"year":"2025/26","rate":23.3}],"Glasgow|Human Rights":[{"year":"2018/19","rate":48.4},{"year":"2019/20","rate":48.3},{"year":"2020/21","rate":40.5},{"year":"2021/22","rate":48.1},{"year":"2022/23","rate":44.8},{"year":"2023/24","rate":46.9},{"year":"2024/25","rate":41.9},{"year":"2025/26","rate":33.7}],"Harmondsworth|Asylum/Protection":[{"year":"2018/19","rate":24.4},{"year":"2019/20","rate":30.0}],"Harmondsworth|EEA Free Movement":[{"year":"2018/19","rate":51.5},{"year":"2019/20","rate":43.5}],"Harmondsworth|Human Rights":[{"year":"2018/19","rate":55.9},{"year":"2019/20","rate":46.9},{"year":"2024/25","rate":36.4}],"Hatton Cross|Asylum/Protection":[{"year":"2018/19","rate":42.9},{"year":"2019/20","rate":51.2},{"year":"2020/21","rate":51.4},{"year":"2021/22","rate":47.5},{"year":"2022/23","rate":51.4},{"year":"2023/24","rate":53.7},{"year":"2024/25","rate":47.2},{"year":"2025/26","rate":43.0}],"Hatton Cross|EEA Free Movement":[{"year":"2018/19","rate":52.7},{"year":"2019/20","rate":51.9},{"year":"2020/21","rate":45.0},{"year":"2021/22","rate":53.5},{"year":"2022/23","rate":52.0},{"year":"2023/24","rate":48.4},{"year":"2024/25","rate":29.1},{"year":"2025/26","rate":36.7}],"Hatton Cross|Human Rights":[{"year":"2018/19","rate":59.0},{"year":"2019/20","rate":55.3},{"year":"2020/21","rate":55.1},{"year":"2021/22","rate":54.1},{"year":"2022/23","rate":55.2},{"year":"2023/24","rate":54.9},{"year":"2024/25","rate":50.3},{"year":"2025/26","rate":45.2}],"Manchester Piccadilly|Asylum/Protection":[{"year":"2018/19","rate":41.7},{"year":"2019/20","rate":44.2},{"year":"2020/21","rate":42.7},{"year":"2021/22","rate":51.5},{"year":"2022/23","rate":47.4},{"year":"2023/24","rate":46.2},{"year":"2024/25","rate":45.9},{"year":"2025/26","rate":37.3}],"Manchester Piccadilly|EEA Free Movement":[{"year":"2018/19","rate":47.5},{"year":"2019/20","rate":42.5},{"year":"2020/21","rate":33.1},{"year":"2021/22","rate":45.2},{"year":"2022/23","rate":50.7},{"year":"2023/24","rate":44.0},{"year":"2024/25","rate":43.3},{"year":"2025/26","rate":40.2}],"Manchester Piccadilly|Human Rights":[{"year":"2018/19","rate":52.5},{"year":"2019/20","rate":46.3},{"year":"2020/21","rate":47.5},{"year":"2021/22","rate":51.4},{"year":"2022/23","rate":52.6},{"year":"2023/24","rate":53.7},{"year":"2024/25","rate":52.1},{"year":"2025/26","rate":51.1}],"Newport|Asylum/Protection":[{"year":"2018/19","rate":55.2},{"year":"2019/20","rate":52.6},{"year":"2020/21","rate":45.4},{"year":"2021/22","rate":53.1},{"year":"2022/23","rate":50.5},{"year":"2023/24","rate":40.9},{"year":"2024/25","rate":37.4},{"year":"2025/26","rate":35.6}],"Newport|EEA Free Movement":[{"year":"2018/19","rate":57.0},{"year":"2019/20","rate":50.9},{"year":"2020/21","rate":44.6},{"year":"2021/22","rate":36.1},{"year":"2022/23","rate":42.3},{"year":"2023/24","rate":36.4},{"year":"2024/25","rate":21.5},{"year":"2025/26","rate":28.6}],"Newport|Human Rights":[{"year":"2018/19","rate":62.0},{"year":"2019/20","rate":49.8},{"year":"2020/21","rate":52.5},{"year":"2021/22","rate":50.9},{"year":"2022/23","rate":57.6},{"year":"2023/24","rate":45.9},{"year":"2024/25","rate":50.0},{"year":"2025/26","rate":39.4}],"North Shields|Asylum/Protection":[{"year":"2018/19","rate":45.9}],"North Shields|Human Rights":[{"year":"2018/19","rate":47.6}],"Nottingham Justice Centre|Asylum/Protection":[{"year":"2018/19","rate":43.8},{"year":"2019/20","rate":53.5},{"year":"2020/21","rate":36.1},{"year":"2024/25","rate":30.0}],"Nottingham Justice Centre|EEA Free Movement":[{"year":"2018/19","rate":58.5},{"year":"2019/20","rate":53.0},{"year":"2021/22","rate":40.6},{"year":"2022/23","rate":42.1},{"year":"2023/24","rate":35.2},{"year":"2024/25","rate":49.9}],"Nottingham Justice Centre|Human Rights":[{"year":"2018/19","rate":63.5},{"year":"2019/20","rate":51.1},{"year":"2020/21","rate":43.6},{"year":"2021/22","rate":39.9},{"year":"2022/23","rate":39.1},{"year":"2023/24","rate":48.0},{"year":"2024/25","rate":25.0}],"Taylor House|Asylum/Protection":[{"year":"2018/19","rate":51.3},{"year":"2019/20","rate":50.7},{"year":"2020/21","rate":55.2},{"year":"2021/22","rate":52.2},{"year":"2022/23","rate":53.1},{"year":"2023/24","rate":52.8},{"year":"2024/25","rate":46.3},{"year":"2025/26","rate":38.7}],"Taylor House|EEA Free Movement":[{"year":"2018/19","rate":52.7},{"year":"2019/20","rate":51.4},{"year":"2020/21","rate":47.2},{"year":"2021/22","rate":50.6},{"year":"2022/23","rate":49.8},{"year":"2023/24","rate":41.8},{"year":"2024/25","rate":33.3},{"year":"2025/26","rate":26.2}],"Taylor House|Human Rights":[{"year":"2018/19","rate":62.2},{"year":"2019/20","rate":55.5},{"year":"2020/21","rate":57.2},{"year":"2021/22","rate":59.7},{"year":"2022/23","rate":52.5},{"year":"2023/24","rate":53.1},{"year":"2024/25","rate":52.5},{"year":"2025/26","rate":42.6}],"Yarl's Wood|Asylum/Protection":[{"year":"2018/19","rate":17.0}],"Yarl's Wood|EEA Free Movement":[{"year":"2018/19","rate":56.9}],"National Business Centre|Human Rights":[{"year":"2018/19","rate":34.2}],"North Shields|EEA Free Movement":[{"year":"2018/19","rate":55.0}],"Yarl's Wood|Human Rights":[{"year":"2018/19","rate":30.1}],"National Business Centre|Asylum/Protection":[{"year":"2018/19","rate":32.0}],"Newcastle IAC|Asylum/Protection":[{"year":"2018/19","rate":38.0},{"year":"2019/20","rate":48.3},{"year":"2020/21","rate":41.7},{"year":"2021/22","rate":46.7},{"year":"2022/23","rate":48.8},{"year":"2023/24","rate":46.3},{"year":"2024/25","rate":45.1},{"year":"2025/26","rate":40.0}],"Newcastle IAC|EEA Free Movement":[{"year":"2018/19","rate":44.0},{"year":"2019/20","rate":55.3},{"year":"2020/21","rate":31.0},{"year":"2021/22","rate":39.7},{"year":"2022/23","rate":45.3},{"year":"2023/24","rate":37.0}],"Newcastle IAC|Human Rights":[{"year":"2018/19","rate":34.0},{"year":"2019/20","rate":54.9},{"year":"2020/21","rate":52.8},{"year":"2021/22","rate":50.0},{"year":"2022/23","rate":53.2},{"year":"2023/24","rate":48.1},{"year":"2024/25","rate":49.1},{"year":"2025/26","rate":53.8}],"National Business Centre|EEA Free Movement":[{"year":"2021/22","rate":48.2},{"year":"2023/24","rate":45.9}],"IAC National (Virtual)|Asylum/Protection":[{"year":"2025/26","rate":45.9}],"IAC National (Virtual)|Human Rights":[{"year":"2025/26","rate":53.0}],"IAC National (Virtual)|EEA Free Movement":[{"year":"2025/26","rate":54.0}]},"years":["2018/19","2019/20","2020/21","2021/22","2022/23","2023/24","2024/25","2025/26"],"nationalityRecords":[{"nationality":"Sudan","allowRate":76.7,"determined":653},{"nationality":"Eritrea","allowRate":63.4,"determined":306},{"nationality":"El Salvador","allowRate":62.9,"determined":402},{"nationality":"Sri Lanka","allowRate":58.7,"determined":1237},{"nationality":"Iran","allowRate":57.7,"determined":3442},{"nationality":"Afghanistan","allowRate":56.6,"determined":1697},{"nationality":"Vietnam","allowRate":54.6,"determined":1010},{"nationality":"Turkey","allowRate":54.5,"determined":620},{"nationality":"Cameroon","allowRate":53.5,"determined":314},{"nationality":"Ethiopia","allowRate":53.5,"determined":774},{"nationality":"Albania","allowRate":51.6,"determined":1620},{"nationality":"Somalia","allowRate":49.8,"determined":275},{"nationality":"Congo (Democratic Republic)","allowRate":46.7,"determined":272},{"nationality":"Iraq","allowRate":41.8,"determined":5224},{"nationality":"Zimbabwe","allowRate":40.7,"determined":307},{"nationality":"Egypt","allowRate":35.9,"determined":543},{"nationality":"Nigeria","allowRate":32.3,"determined":1265},{"nationality":"Namibia","allowRate":31.9,"determined":360},{"nationality":"Pakistan","allowRate":30.6,"determined":2682},{"nationality":"Algeria","allowRate":26.8,"determined":205},{"nationality":"Bangladesh","allowRate":24.9,"determined":2316},{"nationality":"China","allowRate":23.8,"determined":606},{"nationality":"Ghana","allowRate":23.8,"determined":231},{"nationality":"India","allowRate":22.3,"determined":588}],"nationalityOverall":44.4,"natTrend":{"Iraq":[{"year":"2018","rate":40.4},{"year":"2019","rate":39.2},{"year":"2020","rate":36.4},{"year":"2021","rate":46.4},{"year":"2022","rate":49.8},{"year":"2023","rate":54.8}],"Iran":[{"year":"2018","rate":51.8},{"year":"2019","rate":59.4},{"year":"2020","rate":55.1},{"year":"2021","rate":69.0},{"year":"2022","rate":64.6},{"year":"2023","rate":68.3}],"Pakistan":[{"year":"2018","rate":28.3},{"year":"2019","rate":30.8},{"year":"2020","rate":35.1},{"year":"2021","rate":27.3},{"year":"2022","rate":39.9},{"year":"2023","rate":38.6}],"Bangladesh":[{"year":"2018","rate":19.6},{"year":"2019","rate":26.3},{"year":"2020","rate":29.3},{"year":"2021","rate":28.7},{"year":"2022","rate":32.6},{"year":"2023","rate":43.8}],"Afghanistan":[{"year":"2018","rate":56.8},{"year":"2019","rate":55.2},{"year":"2020","rate":50.0},{"year":"2021","rate":65.7},{"year":"2022","rate":54.5}],"Albania":[{"year":"2018","rate":41.8},{"year":"2019","rate":52.0},{"year":"2020","rate":59.7},{"year":"2021","rate":57.1},{"year":"2022","rate":57.2},{"year":"2023","rate":51.3}],"Nigeria":[{"year":"2018","rate":25.5},{"year":"2019","rate":32.0},{"year":"2020","rate":36.7},{"year":"2021","rate":42.3},{"year":"2022","rate":37.7},{"year":"2023","rate":43.8}],"Sri Lanka":[{"year":"2018","rate":54.1},{"year":"2019","rate":59.5},{"year":"2020","rate":59.3},{"year":"2021","rate":64.5},{"year":"2022","rate":71.4}]}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const CASE_TYPES = ["Asylum/Protection", "Human Rights", "EEA Free Movement"];
+const fmt = (n) => (Math.round(n * 10) / 10).toFixed(1);
+const ACCENT = "#1F4E79", WARM = "#b45309";
+// colour scale: low rate = warm red, mid = amber, high = green
+function rateColor(rate, selected) {
+  if (selected) return ACCENT;
+  if (rate >= 50) return '#1d9e75';
+  if (rate >= 40) return '#5cae8a';
+  if (rate >= 33) return '#e0a020';
+  return '#d85a30';
+}
+
+let caseType = "Asylum/Protection";
+let venue = "Taylor House";
+let chart = null;
+
+const venues = Array.from(new Set(DATA.records.map(r => r.venue))).sort();
+
+const csSel = document.getElementById('caseType');
+CASE_TYPES.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; csSel.appendChild(o); });
+csSel.value = caseType;
+
+const vSel = document.getElementById('venue');
+venues.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; vSel.appendChild(o); });
+vSel.value = venue;
+
+csSel.addEventListener('change', e => { caseType = e.target.value; render(); });
+vSel.addEventListener('change', e => { venue = e.target.value; render(); });
+
+function render() {
+  const rows = DATA.records.filter(r => r.caseType === caseType);
+  const sorted = [...rows].sort((a,b) => b.allowRate - a.allowRate);
+  const num = rows.reduce((s,r) => s + r.allowRate * r.determined, 0);
+  const den = rows.reduce((s,r) => s + r.determined, 0);
+  const national = den ? num/den : 0;
+  const sel = rows.find(r => r.venue === venue);
+  const max = sorted[0], min = sorted[sorted.length-1];
+  const spread = (max && min) ? max.allowRate - min.allowRate : 0;
+
+  // cards
+  const cards = document.getElementById('cards');
+  if (sel) {
+    const delta = sel.allowRate - national;
+    cards.innerHTML = `
+      <div class="card">
+        <div class="card-label">Historical allow rate — ${sel.venue}</div>
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <span class="big">${fmt(sel.allowRate)}%</span>
+          <span class="delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${fmt(Math.abs(delta))} pts vs national</span>
+        </div>
+        <div class="note">Based on <b>${sel.determined.toLocaleString()}</b> appeals determined. National rate for this case type: <b>${fmt(national)}%</b>.</div>
+      </div>
+      <div class="card alt">
+        <div class="card-label">Across all venues</div>
+        <div class="alt-line">
+          <div>Highest — <b>${max.venue}</b> (${fmt(max.allowRate)}%)</div>
+          <div>Lowest — <b>${min.venue}</b> (${fmt(min.allowRate)}%)</div>
+          <div>Spread — <b>${fmt(spread)} percentage points</b></div>
+        </div>
+      </div>`;
+  } else {
+    cards.innerHTML = `<div class="card" style="border-style:dashed;color:#5a6472">No data for ${venue} in this case type. Pick another venue.</div>`;
+  }
+
+  // trend
+  const key = `${venue}|${caseType}`;
+  const trend = (DATA.trend[key] || []).map(d => ({ year: d.year.slice(0,4), rate: d.rate }));
+  const tw = document.getElementById('trendWrap');
+  if (trend.length > 1) {
+    tw.style.display = 'block';
+    document.getElementById('trendTitle').textContent = `${venue} — allow rate over time`;
+    if (typeof Chart !== 'undefined') {
+      drawChart(trend, national);
+    } else {
+      document.getElementById('trendChart').outerHTML =
+        '<div style="color:#8a94a3;font-size:13px;padding:20px 0">Trend chart needs an internet connection to load. Values: ' +
+        trend.map(d => d.year + ' ' + fmt(d.rate) + '%').join(' · ') + '</div>';
+    }
+  } else {
+    tw.style.display = 'none';
+  }
+
+  // ranking
+  document.getElementById('rankTitle').textContent = `All venues — ${caseType}`;
+  const rank = document.getElementById('ranking');
+  rank.innerHTML = '';
+  sorted.forEach(r => {
+    const isSel = r.venue === venue;
+    const pct = (r.allowRate / 80) * 100;
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.innerHTML = `
+      <div class="vname" style="font-weight:${isSel?600:400};color:${isSel?ACCENT:'#1a2332'}">${r.venue}</div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${rateColor(r.allowRate, isSel)}"></div></div>
+      <div class="pct" style="color:${isSel?ACCENT:'#1a2332'}">${fmt(r.allowRate)}%</div>`;
+    div.addEventListener('click', () => { venue = r.venue; vSel.value = r.venue; render(); });
+    rank.appendChild(div);
+  });
+}
+
+function drawChart(trend, national) {
+  const ctx = document.getElementById('trendChart');
+  if (chart) chart.destroy();
+  const natLine = {
+    id: 'natLine',
+    afterDraw(c) {
+      const y = c.scales.y.getPixelForValue(national);
+      const { left, right } = c.chartArea;
+      const x = c.ctx;
+      x.save(); x.strokeStyle = WARM; x.setLineDash([4,4]); x.lineWidth = 1;
+      x.beginPath(); x.moveTo(left, y); x.lineTo(right, y); x.stroke();
+      x.setLineDash([]); x.fillStyle = WARM; x.font = '11px Inter'; x.textAlign = 'right';
+      x.fillText('national', right - 2, y - 4); x.restore();
+    }
+  };
+  chart = new Chart(ctx, {
+    type: 'line',
+    plugins: [natLine],
+    data: {
+      labels: trend.map(d => d.year),
+      datasets: [{
+        data: trend.map(d => d.rate),
+        borderColor: ACCENT, backgroundColor: ACCENT,
+        borderWidth: 2.5, pointRadius: 3, tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `Allow rate: ${fmt(c.parsed.y)}%` } }
+      },
+      scales: {
+        y: { min: 0, max: 80, ticks: { callback: v => v + '%', color: '#5a6472', font: { size: 12 } }, grid: { color: '#eef1f5' } },
+        x: { ticks: { color: '#5a6472', font: { size: 12 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderNationality() {
+  const recs = DATA.nationalityRecords;
+  const overall = DATA.nationalityOverall;
+  const max = recs[0], min = recs[recs.length - 1];
+  const spread = max.allowRate - min.allowRate;
+
+  document.getElementById('natCards').innerHTML = `
+    <div class="card">
+      <div class="card-label">Spread across nationalities</div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span class="big">${fmt(spread)}</span>
+        <span class="delta" style="color:#5a6472;font-weight:600">percentage points</span>
+      </div>
+      <div class="note">From <b>${max.nationality}</b> (${fmt(max.allowRate)}%) down to <b>${min.nationality}</b> (${fmt(min.allowRate)}%). National average: <b>${fmt(overall)}%</b>.</div>
+    </div>
+    <div class="card alt">
+      <div class="card-label">Why this matters</div>
+      <div style="font-size:13px;line-height:1.6;color:#5a6472">Nationality variation is wider than venue variation — but some of it reflects genuine differences in case merit. Separating the two is the core analytical task of the dissertation.</div>
+    </div>`;
+
+  const rank = document.getElementById('natRanking');
+  rank.innerHTML = '';
+  recs.forEach(r => {
+    const pct = (r.allowRate / 80) * 100;
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.style.cursor = 'default';
+    div.innerHTML = `
+      <div class="vname">${r.nationality}</div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${rateColor(r.allowRate, false)}"></div></div>
+      <div class="pct">${fmt(r.allowRate)}%</div>`;
+    rank.appendChild(div);
+  });
+
+  // nationality trend multi-line chart
+  const ntWrap = document.getElementById('natTrendWrap');
+  if (DATA.natTrend && typeof Chart !== 'undefined') {
+    ntWrap.style.display = 'block';
+    drawNatTrend();
+  } else if (DATA.natTrend) {
+    ntWrap.style.display = 'block';
+    document.getElementById('natTrendChart').outerHTML =
+      '<div style="color:#8a94a3;font-size:13px;padding:16px 0">Trend chart needs an internet connection to load.</div>';
+  }
+}
+
+let natChart = null;
+function drawNatTrend() {
+  const ctx = document.getElementById('natTrendChart');
+  if (natChart) natChart.destroy();
+  const palette = ['#1F4E79','#b45309','#15803d','#7c3aed','#be123c','#0891b2','#a16207','#4338ca'];
+  const entries = Object.entries(DATA.natTrend);
+  const years = ['2018','2019','2020','2021','2022','2023'];
+  const datasets = entries.map((e, i) => {
+    const map = Object.fromEntries(e[1].map(d => [d.year, d.rate]));
+    return {
+      label: e[0],
+      data: years.map(y => map[y] ?? null),
+      borderColor: palette[i % palette.length],
+      backgroundColor: palette[i % palette.length],
+      borderWidth: 2, pointRadius: 2, tension: 0.3, spanGaps: true
+    };
+  });
+  natChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: years, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: '#5a6472' } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.parsed.y)}%` } }
+      },
+      scales: {
+        y: { min: 0, max: 90, ticks: { callback: v => v + '%', color: '#5a6472', font: { size: 11 } }, grid: { color: '#eef1f5' } },
+        x: { ticks: { color: '#5a6472', font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+const tabV = document.getElementById('tabVenue');
+const tabN = document.getElementById('tabNat');
+tabV.addEventListener('click', () => {
+  tabV.classList.add('active'); tabN.classList.remove('active');
+  document.getElementById('venuePanel').style.display = 'block';
+  document.getElementById('natPanel').style.display = 'none';
+});
+tabN.addEventListener('click', () => {
+  tabN.classList.add('active'); tabV.classList.remove('active');
+  document.getElementById('venuePanel').style.display = 'none';
+  document.getElementById('natPanel').style.display = 'block';
+  renderNationality();
+});
+
+render();
+</script>
+</body>
+</html>
