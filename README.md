@@ -4,10 +4,7 @@
 An independent, exploratory analysis of Ministry of Justice First-tier Tribunal statistics (2018/19 – 2025/26).
 
 > 🔎 **Headline finding:** disposal-weighted allow rates vary from roughly **27% to 55% across hearing venues** — a spread of ~27 percentage points. That spread has **narrowed to ~12 points by 2025/26**, coinciding with the rollout of a new case-management system.
-
-<!-- Add a dashboard screenshot here: ![<img width="936" height="435" alt="Screenshot 2026-07-03 at 14 59 59" src="https://github.com/user-attachments/assets/50979f5d-83f3-4c9d-a07f-527ec2d7efd0" />
-) -->
-
+<img width="936" alt="Dashboard screenshot" src="https://github.com/user-attachments/assets/50979f5d-83f3-4c9d-a07f-527ec2d7efd0" />
 ## Why this project
 
 Asylum appeals are among the highest-stakes decisions in the UK justice system, yet there is little public, analytics-driven scrutiny of how consistent outcomes are between hearing venues. The official data to ask that question exists and is open — this project puts it to work.
@@ -20,8 +17,7 @@ I bring an unusual combination to it: a law background (LLM) for the legal conte
 - **Weighted allow rates** — rates weighted by appeals determined per venue, so small venues don't distort the picture
 - **Venue comparison** — spread, coefficient of variation (0.14), and which venues sit at the extremes
 - **Time trends** — how venue variation has changed from 2018/19 to 2025/26
-- **Interactive dashboard** — <!-- file:///Users/poonamnauroji/Downloads/appeal_dashboard-2.html -->
-
+- **Interactive dashboard** — - **Interactive dashboard** — [View it live](https://poonam160498.github.io/uk-asylum-tribunal-analytics/)
 ## Important caveats (read before quoting)
 
 Raw variation is **not** proof of unfairness. Part of the venue spread is expected case-mix: for example, Harmondsworth hears detained appeals, which differ systematically in character. This exploratory analysis **describes** the variation; it does not adjust for case-mix or claim causal conclusions. Treat the numbers as a starting point for questions, not a verdict.
